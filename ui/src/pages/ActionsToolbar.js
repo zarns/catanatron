@@ -57,6 +57,10 @@ function PlayButtons() {
       .filter((action) => action[1].startsWith("PLAY"))
       .map((action) => action[1])
   );
+  const setIsRoadBuilding = useCallback(() => {
+    console.log('playing road building');
+    dispatch({ type: ACTIONS.SET_IS_ROAD_BUILDING });
+  }, [dispatch]);
   const useItems = [
     {
       label: "Monopoly",
@@ -69,6 +73,7 @@ function PlayButtons() {
     {
       label: "Road Building",
       disabled: !playableDevCardTypes.has("PLAY_ROAD_BUILDING"),
+      onClick: setIsRoadBuilding,
     },
     {
       label: "Knight",

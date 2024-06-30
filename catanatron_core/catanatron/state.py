@@ -80,7 +80,7 @@ PLAYER_INITIAL_STATE = {
 for resource in RESOURCES:
     PLAYER_INITIAL_STATE[f"{resource}_IN_HAND"] = 0
 for dev_card in DEVELOPMENT_CARDS:
-    PLAYER_INITIAL_STATE[f"{dev_card}_IN_HAND"] = 0
+    PLAYER_INITIAL_STATE[f"{dev_card}_IN_HAND"] = 2
     PLAYER_INITIAL_STATE[f"PLAYED_{dev_card}"] = 0
 
 

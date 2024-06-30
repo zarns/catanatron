@@ -71,6 +71,13 @@ function buildEdgeActions(state) {
       .forEach((action) => {
         edgeActions[action[2]] = action;
       });
+  } else if (state.isRoadBuilding) {
+    state.gameState.current_playable_actions
+      .filter((action) => action[1] === "BUILD_ROAD")
+      .forEach((action) => {
+        edgeActions[action[2]] = action;
+      });
+    console.log(state.gameState.current_playable_actions.toString());
   }
   return edgeActions;
 }
@@ -101,9 +108,12 @@ export default function ZoomableBoard({ replayMode }) {
       if (action) {
         const gameState = await postAction(gameId, action);
         dispatch({ type: ACTIONS.SET_GAME_STATE, data: gameState });
+        if (state.isRoadBuilding) {
+          dispatch({ type: ACTIONS.SET_IS_ROAD_BUILDING, data: false });
+        }
       }
     }),
-    []
+    [dispatch, state.isRoadBuilding]
   );
 
   const nodeActions = replayMode ? {} : buildNodeActions(state);

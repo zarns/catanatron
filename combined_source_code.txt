@@ -1,0 +1,1939 @@
+---------- C:\Users\mason\programming\catanatron\ui\src\components\LeftDrawer.js ---------- 
+import React, { useCallback, useContext } from "react";
+import cn from "classnames";
+import SwipeableDrawer from "@material-ui/core/SwipeableDrawer";
+import Divider from "@material-ui/core/Divider";
+import Drawer from "@material-ui/core/Drawer";
+import { Hidden } from "@material-ui/core";
+
+import PlayerStateBox from "../components/PlayerStateBox";
+import { humanizeAction } from "../components/Prompt";
+import { store } from "../store";
+import ACTIONS from "../actions";
+import { playerKey } from "../utils/stateUtils";
+
+import "./LeftDrawer.scss";
+
+function DrawerContent({ gameState }) {
+  const playerSections = gameState.colors.map((color) => {
+    const key = playerKey(gameState, color);
+    return (
+      <React.Fragment key={color}>
+        <PlayerStateBox
+          playerState={gameState.player_state}
+          playerKey={key}
+          color={color}
+        />
+        <Divider />
+      </React.Fragment>
+    );
+  });
+
+  return (
+    <>
+      {playerSections}
+      <div className="log">
+        {gameState.actions
+          .slice()
+          .reverse()
+          .map((action, i) => (
+            <div key={i} className={cn("action foreground", action)}>
+              {humanizeAction(gameState, action)}
+            </div>
+          ))}
+      </div>
+    </>
+  );
+}
+
+export default function LeftDrawer() {
+  const { state, dispatch } = useContext(store);
+  const iOS = process.browser && /iPad|iPhone|iPod/.test(navigator.userAgent);
+
+  const openLeftDrawer = useCallback(
+    (event) => {
+      if (
+        event &&
+        event.type === "keydown" &&
+        (event.key === "Tab" || event.key === "Shift")
+      ) {
+        return;
+      }
+
+      dispatch({ type: ACTIONS.SET_LEFT_DRAWER_OPENED, data: true });
+    },
+    [dispatch]
+  );
+  const closeLeftDrawer = useCallback(
+    (event) => {
+      if (
+        event &&
+        event.type === "keydown" &&
+        (event.key === "Tab" || event.key === "Shift")
+      ) {
+        return;
+      }
+
+      dispatch({ type: ACTIONS.SET_LEFT_DRAWER_OPENED, data: false });
+    },
+    [dispatch]
+  );
+
+  return (
+    <>
+      <Hidden mdUp implementation="js">
+        <SwipeableDrawer
+          className="left-drawer"
+          anchor="left"
+          open={state.isLeftDrawerOpen}
+          onClose={closeLeftDrawer}
+          onOpen={openLeftDrawer}
+          disableBackdropTransition={!iOS}
+          disableDiscovery={iOS}
+          onKeyDown={closeLeftDrawer}
+        >
+          <DrawerContent gameState={state.gameState} />
+        </SwipeableDrawer>
+      </Hidden>
+      <Hidden smDown implementation="css">
+        <Drawer className="left-drawer" anchor="left" variant="permanent" open>
+          <DrawerContent gameState={state.gameState} />
+        </Drawer>
+      </Hidden>
+    </>
+  );
+}
+---------- C:\Users\mason\programming\catanatron\ui\src\components\PlayerStateBox.js ---------- 
+import React from "react";
+import cn from "classnames";
+
+import "./PlayerStateBox.scss";
+import { Paper } from "@material-ui/core";
+
+export function ResourceCards({ playerState, playerKey }) {
+  const amount = (card) => playerState[`${playerKey}_${card}_IN_HAND`];
+  return (
+    <div className="resource-cards" title="Resource Cards">
+      {amount("WOOD") !== 0 && (
+        <div className="wood-cards center-text card">
+          <Paper>{amount("WOOD")}</Paper>
+        </div>
+      )}
+      {amount("BRICK") !== 0 && (
+        <div className="brick-cards center-text card">
+          <Paper>{amount("BRICK")}</Paper>
+        </div>
+      )}
+      {amount("SHEEP") !== 0 && (
+        <div className="sheep-cards center-text card">
+          <Paper>{amount("SHEEP")}</Paper>
+        </div>
+      )}
+      {amount("WHEAT") !== 0 && (
+        <div className="wheat-cards center-text card">
+          <Paper>{amount("WHEAT")}</Paper>
+        </div>
+      )}
+      {amount("ORE") !== 0 && (
+        <div className="ore-cards center-text card">
+          <Paper>{amount("ORE")}</Paper>
+        </div>
+      )}
+      <div className="separator"></div>
+      {amount("VICTORY_POINT") !== 0 && (
+        <div
+          className="dev-cards center-text card"
+          title={amount("VICTORY_POINT") + " Victory Point Card(s)"}
+        >
+          <Paper>
+            <span>{amount("VICTORY_POINT")}</span>
+            <span>VP</span>
+          </Paper>
+        </div>
+      )}
+      {amount("KNIGHT") !== 0 && (
+        <div
+          className="dev-cards center-text card"
+          title={amount("KNIGHT") + " Knight Card(s)"}
+        >
+          <Paper>
+            <span>{amount("KNIGHT")}</span>
+            <span>KN</span>
+          </Paper>
+        </div>
+      )}
+      {amount("MONOPOLY") !== 0 && (
+        <div
+          className="dev-cards center-text card"
+          title={amount("MONOPOLY") + " Monopoly Card(s)"}
+        >
+          <Paper>
+            <span>{amount("MONOPOLY")}</span>
+            <span>MO</span>
+          </Paper>
+        </div>
+      )}
+      {amount("YEAR_OF_PLENTY") !== 0 && (
+        <div
+          className="dev-cards center-text card"
+          title={amount("YEAR_OF_PLENTY") + " Year of Plenty Card(s)"}
+        >
+          <Paper>
+            <span>{amount("YEAR_OF_PLENTY")}</span>
+            <span>YP</span>
+          </Paper>
+        </div>
+      )}
+      {amount("ROAD_BUILDING") !== 0 && (
+        <div
+          className="dev-cards center-text card"
+          title={amount("ROAD_BUILDING") + " Road Building Card(s)"}
+        >
+          <Paper>
+            <span>{amount("ROAD_BUILDING")}</span>
+            <span>RB</span>
+          </Paper>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default function PlayerStateBox({ playerState, playerKey, color }) {
+  const actualVps = playerState[`${playerKey}_ACTUAL_VICTORY_POINTS`];
+  return (
+    <div className={cn("player-state-box foreground", color)}>
+      <ResourceCards playerState={playerState} playerKey={playerKey} />
+      <div className="scores">
+        <div
+          className={cn("num-knights center-text", {
+            bold: playerState[`${playerKey}_HAS_ARMY`],
+          })}
+          title="Knights Played"
+        >
+          <span>{playerState[`${playerKey}_PLAYED_KNIGHT`]}</span>
+          <small>knights</small>
+        </div>
+        <div
+          className={cn("num-roads center-text", {
+            bold: playerState[`${playerKey}_HAS_ROAD`],
+          })}
+          title="Longest Road"
+        >
+          {playerState[`${playerKey}_LONGEST_ROAD_LENGTH`]}
+          <small>roads</small>
+        </div>
+        <div
+          className={cn("victory-points center-text", {
+            bold: actualVps >= 10,
+          })}
+          title="Victory Points"
+        >
+          {actualVps}
+          <small>VPs</small>
+        </div>
+      </div>
+    </div>
+  );
+}
+---------- C:\Users\mason\programming\catanatron\ui\src\components\Prompt.js ---------- 
+import React from "react";
+import { isPlayersTurn } from "../utils/stateUtils";
+
+import "./Prompt.scss";
+
+function findTileByCoordinate(gameState, coordinate) {
+  for (const tile of Object.values(gameState.tiles)) {
+    if (JSON.stringify(tile.coordinate) === JSON.stringify(coordinate)) {
+      return tile;
+    }
+  }
+}
+
+function findTileById(gameState, tileId) {
+  return gameState.tiles[tileId];
+}
+
+function getTileString(tile) {
+  return `${tile.tile.number} ${tile.tile.resource}`;
+}
+
+function getShortTileString(tileTile) {
+  return tileTile.number || tileTile.type;
+}
+
+export function humanizeAction(gameState, action) {
+  const botColors = gameState.bot_colors;
+  const player = botColors.includes(action[0]) ? "BOT" : "YOU";
+  switch (action[1]) {
+    case "ROLL":
+      return `${player} ROLLED A ${action[2][0] + action[2][1]}`;
+    case "DISCARD":
+      return `${player} DISCARDED`;
+    case "BUY_DEVELOPMENT_CARD":
+      return `${player} BOUGHT DEVELOPMENT CARD`;
+    case "BUILD_SETTLEMENT":
+    case "BUILD_CITY": {
+      const parts = action[1].split("_");
+      const building = parts[parts.length - 1];
+      const tileId = action[2];
+      const tiles = gameState.adjacent_tiles[tileId];
+      const tileString = tiles.map(getShortTileString).join("-");
+      return `${player} BUILT ${building} ON ${tileString}`;
+    }
+    case "BUILD_ROAD": {
+      const edge = action[2];
+      const a = gameState.adjacent_tiles[edge[0]].map((t) => t.id);
+      const b = gameState.adjacent_tiles[edge[1]].map((t) => t.id);
+      const intersection = a.filter((t) => b.includes(t));
+      const tiles = intersection.map(
+        (tileId) => findTileById(gameState, tileId).tile
+      );
+      const edgeString = tiles.map(getShortTileString).join("-");
+      return `${player} BUILT ROAD ON ${edgeString}`;
+    }
+    case "PLAY_KNIGHT_CARD": {
+      return `${player} PLAYED KNIGHT CARD`;
+    }
+    case "PLAY_YEAR_OF_PLENTY": {
+      return `${player} YEAR OF PLENTY ${action[2]}`;
+    }
+    case "MOVE_ROBBER": {
+      const tile = findTileByCoordinate(gameState, action[2][0]);
+      const tileString = getTileString(tile);
+      return `${player} ROBBED ${tileString} (STOLE ${action[2][2]})`;
+    }
+    case "MARITIME_TRADE": {
+      const label = humanizeTradeAction(action);
+      return `${player} TRADED ${label}`;
+    }
+    case "END_TURN":
+      return `${player} ENDED TURN`;
+    default:
+      return `${player} ${action.slice(1)}`;
+  }
+}
+
+export function humanizeTradeAction(action) {
+  const out = action[2].slice(0, 4).filter((resource) => resource !== null);
+  return `${out.length} ${out[0]} => ${action[2][4]}`;
+}
+
+function humanizePrompt(current_prompt) {
+  switch (current_prompt) {
+    case "ROLL":
+      return `YOUR TURN`;
+    case "PLAY_TURN":
+      return `YOUR TURN`;
+    case "BUILD_INITIAL_SETTLEMENT":
+    case "BUILD_INITIAL_ROAD":
+    default: {
+      const prompt = current_prompt.replaceAll("_", " ");
+      return `PLEASE ${prompt}`;
+    }
+  }
+}
+
+export default function Prompt({ gameState, isBotThinking }) {
+  let prompt = "";
+  if (isBotThinking) {
+    // Do nothing, but still render.
+  } else if (gameState.winning_color) {
+    prompt = `Game Over. Congrats, ${gameState.winning_color}!`;
+  } else if (isPlayersTurn(gameState)) {
+    prompt = humanizePrompt(gameState.current_prompt);
+  } else {
+    // prompt = humanizeAction(gameState.actions[gameState.actions.length - 1], gameState.bot_colors);
+  }
+  return <div className="prompt">{prompt}</div>;
+}
+---------- C:\Users\mason\programming\catanatron\ui\src\components\Snackbar.js ---------- 
+import React from "react";
+import { IconButton } from "@material-ui/core";
+import CloseIcon from "@material-ui/icons/Close";
+import { humanizeAction } from "./Prompt";
+
+export const snackbarActions = (closeSnackbar) => (key) =>
+  (
+    <>
+      <IconButton
+        size="small"
+        aria-label="close"
+        color="inherit"
+        onClick={() => closeSnackbar(key)}
+      >
+        <CloseIcon fontSize="small" />
+      </IconButton>
+    </>
+  );
+
+export function dispatchSnackbar(enqueueSnackbar, closeSnackbar, gameState) {
+  enqueueSnackbar(humanizeAction(gameState, gameState.actions.slice(-1)[0]), {
+    action: snackbarActions(closeSnackbar),
+    onClick: () => {
+      closeSnackbar();
+    },
+  });
+}
+---------- C:\Users\mason\programming\catanatron\ui\src\components\LeftDrawer.scss ---------- 
+@import "../variables.scss";
+
+$dark-divider: rgb(0 0 0 / 80%);
+
+.left-drawer {
+  .MuiDrawer-paper {
+    width: 280px;
+    background: $dark-gray;
+  }
+
+  .MuiDivider-root {
+    background: $dark-divider;
+  }
+
+  .MuiDrawer-paperAnchorDockedLeft {
+    border-color: $dark-divider;
+  }
+
+  .log {
+    overflow-y: auto;
+    font-size: 0.8rem;
+
+    // To ensure always clipped towards bottom
+    display: flex;
+    flex-direction: column-reverse;
+    .action {
+      padding: $sm-gutter;
+    }
+  }
+}
+---------- C:\Users\mason\programming\catanatron\ui\src\components\PlayerStateBox.scss ---------- 
+@import "../variables.scss";
+
+.resource-cards {
+  height: 40px;
+  display: flex;
+  gap: 6px;
+
+  margin-bottom: $sm-gutter;
+
+  .card {
+    border-radius: 4px;
+    div {
+      background: #151313;
+      color: white;
+
+      width: 21px;
+      height: 36px;
+
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      font-weight: bold;
+      position: relative;
+    }
+  }
+  .wood-cards {
+    background: $wood;
+  }
+  .brick-cards {
+    background: $brick;
+  }
+  .wheat-cards {
+    background: $wheat;
+  }
+  .sheep-cards {
+    background: $darker-sheep;
+  }
+  .ore-cards {
+    background: $ore;
+  }
+  .dev-cards {
+    background: purple;
+    div {
+      font-size: 0.7rem;
+    }
+  }
+}
+
+.center-text {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  width: 25px;
+  height: 40px;
+}
+
+.player-state-box {
+  padding: $sm-gutter;
+
+  max-width: $sm-breakpoint;
+  margin: 0 auto;
+  width: 100%;
+
+  .scores {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .num-knights,
+  .num-roads,
+  .victory-points {
+    flex-direction: column;
+    width: 50px;
+    height: 40px;
+  }
+
+  .bold {
+    font-weight: bold;
+  }
+}
+---------- C:\Users\mason\programming\catanatron\ui\src\components\Prompt.scss ---------- 
+@import "../variables.scss";
+
+.prompt {
+  padding: $sm-gutter;
+
+  height: 60px;
+  width: 100%;
+  font-size: 1rem;
+
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  overflow-x: auto;
+  white-space: nowrap;
+}
+---------- C:\Users\mason\programming\catanatron\ui\src\pages\ActionsToolbar.js ---------- 
+import React, {
+  useState,
+  useRef,
+  useEffect,
+  useContext,
+  useCallback,
+} from "react";
+import memoize from "fast-memoize";
+import { Button, Hidden } from "@material-ui/core";
+import ChevronLeftIcon from "@material-ui/icons/ChevronLeft";
+import AccountBalanceIcon from "@material-ui/icons/AccountBalance";
+import BuildIcon from "@material-ui/icons/Build";
+import NavigateNextIcon from "@material-ui/icons/NavigateNext";
+import MenuItem from "@material-ui/core/MenuItem";
+import ClickAwayListener from "@material-ui/core/ClickAwayListener";
+import Grow from "@material-ui/core/Grow";
+import Paper from "@material-ui/core/Paper";
+import Popper from "@material-ui/core/Popper";
+import MenuList from "@material-ui/core/MenuList";
+import SimCardIcon from "@material-ui/icons/SimCard";
+import { useParams } from "react-router";
+
+import { ResourceCards } from "../components/PlayerStateBox";
+import Prompt, { humanizeTradeAction } from "../components/Prompt";
+import { store } from "../store";
+import ACTIONS from "../actions";
+import { getHumanColor, playerKey } from "../utils/stateUtils";
+import { postAction } from "../utils/apiClient";
+
+import "./ActionsToolbar.scss";
+import { useSnackbar } from "notistack";
+import { dispatchSnackbar } from "../components/Snackbar";
+
+function PlayButtons() {
+  const { gameId } = useParams();
+  const { state, dispatch } = useContext(store);
+  const { enqueueSnackbar, closeSnackbar } = useSnackbar();
+
+  const carryOutAction = useCallback(
+    memoize((action) => async () => {
+      const gameState = await postAction(gameId, action);
+      dispatch({ type: ACTIONS.SET_GAME_STATE, data: gameState });
+      dispatchSnackbar(enqueueSnackbar, closeSnackbar, gameState);
+    }),
+    [enqueueSnackbar, closeSnackbar]
+  );
+
+  const { gameState } = state;
+  const key = playerKey(gameState, gameState.current_color);
+  const isRoll =
+    gameState.current_prompt === "PLAY_TURN" &&
+    !gameState.player_state[`${key}_HAS_ROLLED`];
+  const isDiscard = gameState.current_prompt === "DISCARD";
+  const isMove = gameState.current_prompt === "MOVE_ROBBER";
+  const playableDevCardTypes = new Set(
+    gameState.current_playable_actions
+      .filter((action) => action[1].startsWith("PLAY"))
+      .map((action) => action[1])
+  );
+  const useItems = [
+    {
+      label: "Monopoly",
+      disabled: !playableDevCardTypes.has("PLAY_MONOPOLY"),
+    },
+    {
+      label: "Year of Plenty",
+      disabled: !playableDevCardTypes.has("PLAY_YEAR_OF_PLENTY"),
+    },
+    {
+      label: "Road Building",
+      disabled: !playableDevCardTypes.has("PLAY_ROAD_BUILDING"),
+    },
+    {
+      label: "Knight",
+      disabled: !playableDevCardTypes.has("PLAY_KNIGHT_CARD"),
+    },
+  ];
+
+  const buildActionTypes = new Set(
+    state.gameState.is_initial_build_phase
+      ? []
+      : state.gameState.current_playable_actions
+          .filter(
+            (action) =>
+              action[1].startsWith("BUY") || action[1].startsWith("BUILD")
+          )
+          .map((a) => a[1])
+  );
+  const humanColor = getHumanColor(state.gameState);
+  const buyDevCard = useCallback(async () => {
+    const action = [humanColor, "BUY_DEVELOPMENT_CARD", null];
+    const gameState = await postAction(gameId, action);
+    dispatch({ type: ACTIONS.SET_GAME_STATE, data: gameState });
+    dispatchSnackbar(enqueueSnackbar, closeSnackbar, gameState);
+  }, [gameId, dispatch, enqueueSnackbar, closeSnackbar, humanColor]);
+  const setIsBuildingSettlement = useCallback(() => {
+    dispatch({ type: ACTIONS.SET_IS_BUILDING_SETTLEMENT });
+  }, [dispatch]);
+  const setIsBuildingCity = useCallback(() => {
+    dispatch({ type: ACTIONS.SET_IS_BUILDING_CITY });
+  }, [dispatch]);
+  const setIsBuildingRoad = useCallback(() => {
+    dispatch({ type: ACTIONS.SET_IS_BUILDING_ROAD });
+  }, [dispatch]);
+  const buildItems = [
+    {
+      label: "Development Card",
+      disabled: !buildActionTypes.has("BUY_DEVELOPMENT_CARD"),
+      onClick: buyDevCard,
+    },
+    {
+      label: "City",
+      disabled: !buildActionTypes.has("BUILD_CITY"),
+      onClick: setIsBuildingCity,
+    },
+    {
+      label: "Settlement",
+      disabled: !buildActionTypes.has("BUILD_SETTLEMENT"),
+      onClick: setIsBuildingSettlement,
+    },
+    {
+      label: "Road",
+      disabled: !buildActionTypes.has("BUILD_ROAD"),
+      onClick: setIsBuildingRoad,
+    },
+  ];
+
+  const tradeActions = state.gameState.current_playable_actions.filter(
+    (action) => action[1] === "MARITIME_TRADE"
+  );
+  const tradeItems = tradeActions.map((action) => {
+    const label = humanizeTradeAction(action);
+    return {
+      label: label,
+      disabled: false,
+      onClick: carryOutAction(action),
+    };
+  });
+
+  const rollAction = carryOutAction([humanColor, "ROLL", null]);
+  const proceedAction = carryOutAction();
+  const endTurnAction = carryOutAction([humanColor, "END_TURN", null]);
+  return (
+    <>
+      <OptionsButton
+        disabled={playableDevCardTypes.size === 0}
+        menuListId="use-menu-list"
+        icon={<SimCardIcon />}
+        items={useItems}
+      >
+        Use
+      </OptionsButton>
+      <OptionsButton
+        disabled={buildActionTypes.size === 0}
+        menuListId="build-menu-list"
+        icon={<BuildIcon />}
+        items={buildItems}
+      >
+        Buy
+      </OptionsButton>
+      <OptionsButton
+        disabled={tradeItems.length === 0}
+        menuListId="trade-menu-list"
+        icon={<AccountBalanceIcon />}
+        items={tradeItems}
+      >
+        Trade
+      </OptionsButton>
+      <Button
+        disabled={gameState.is_initial_build_phase}
+        variant="contained"
+        color="primary"
+        startIcon={<NavigateNextIcon />}
+        onClick={
+          isRoll
+            ? rollAction
+            : isDiscard || isMove
+            ? proceedAction
+            : endTurnAction
+        }
+      >
+        {isRoll ? "ROLL" : isDiscard ? "DISCARD" : isMove ? "ROB" : "END"}
+      </Button>
+    </>
+  );
+}
+
+export default function ActionsToolbar({
+  zoomIn,
+  zoomOut,
+  isBotThinking,
+  replayMode,
+}) {
+  const { state, dispatch } = useContext(store);
+
+  const openLeftDrawer = useCallback(() => {
+    dispatch({
+      type: ACTIONS.SET_LEFT_DRAWER_OPENED,
+      data: true,
+    });
+  }, [dispatch]);
+
+  const botsTurn = state.gameState.bot_colors.includes(
+    state.gameState.current_color
+  );
+  const humanColor = getHumanColor(state.gameState);
+  return (
+    <>
+      <div className="state-summary">
+        <Hidden mdUp>
+          <Button className="open-drawer-btn" onClick={openLeftDrawer}>
+            <ChevronLeftIcon />
+          </Button>
+        </Hidden>
+        {humanColor && (
+          <ResourceCards
+            playerState={state.gameState.player_state}
+            playerKey={playerKey(state.gameState, humanColor)}
+          />
+        )}
+      </div>
+      <div className="actions-toolbar">
+        {!(botsTurn || state.gameState.winning_color) && !replayMode && (
+          <PlayButtons gameState={state.gameState} />
+        )}
+        {(botsTurn || state.gameState.winning_color) && (
+          <Prompt gameState={state.gameState} isBotThinking={isBotThinking} />
+        )}
+        {/* <Button
+          disabled={disabled}
+          className="confirm-btn"
+          variant="contained"
+          color="primary"
+          onClick={onTick}
+        >
+          Ok
+        </Button> */}
+
+        {/* <Button onClick={zoomIn}>Zoom In</Button>
+      <Button onClick={zoomOut}>Zoom Out</Button> */}
+      </div>
+    </>
+  );
+}
+
+function OptionsButton({ menuListId, icon, children, items, disabled }) {
+  const [open, setOpen] = useState(false);
+  const anchorRef = useRef(null);
+
+  const handleToggle = () => {
+    setOpen((prevOpen) => !prevOpen);
+  };
+  const handleClose = (onClick) => (event) => {
+    if (anchorRef.current && anchorRef.current.contains(event.target)) {
+      return;
+    }
+
+    onClick && onClick();
+    setOpen(false);
+  };
+  function handleListKeyDown(event) {
+    if (event.key === "Tab") {
+      event.preventDefault();
+      setOpen(false);
+    }
+  }
+  // return focus to the button when we transitioned from !open -> open
+  const prevOpen = useRef(open);
+  useEffect(() => {
+    if (prevOpen.current === true && open === false) {
+      anchorRef.current.focus();
+    }
+
+    prevOpen.current = open;
+  }, [open]);
+
+  return (
+    <React.Fragment>
+      <Button
+        disabled={disabled}
+        ref={anchorRef}
+        aria-controls={open ? menuListId : undefined}
+        aria-haspopup="true"
+        variant="contained"
+        color="secondary"
+        startIcon={icon}
+        onClick={handleToggle}
+      >
+        {children}
+      </Button>
+      <Popper
+        className="action-popover"
+        open={open}
+        anchorEl={anchorRef.current}
+        role={undefined}
+        transition
+        disablePortal
+      >
+        {({ TransitionProps, placement }) => (
+          <Grow
+            {...TransitionProps}
+            style={{
+              transformOrigin:
+                placement === "bottom" ? "center top" : "center bottom",
+            }}
+          >
+            <Paper>
+              <ClickAwayListener onClickAway={handleClose}>
+                <MenuList
+                  autoFocusItem={open}
+                  id={menuListId}
+                  onKeyDown={handleListKeyDown}
+                >
+                  {items.map((item) => (
+                    <MenuItem
+                      key={item.label}
+                      onClick={handleClose(item.onClick)}
+                      disabled={item.disabled}
+                    >
+                      {item.label}
+                    </MenuItem>
+                  ))}
+                </MenuList>
+              </ClickAwayListener>
+            </Paper>
+          </Grow>
+        )}
+      </Popper>
+    </React.Fragment>
+  );
+}
+---------- C:\Users\mason\programming\catanatron\ui\src\pages\Board.js ---------- 
+import React from "react";
+import classnames from "classnames";
+
+import { SQRT3 } from "../utils/coordinates";
+import Tile from "./Tile";
+import Node from "./Node";
+import Edge from "./Edge";
+import Robber from "./Robber";
+
+import "./Board.scss";
+
+/**
+ * This uses the formulas: W = SQRT3 * size and H = 2 * size.
+ * Math comes from https://www.redblobgames.com/grids/hexagons/.
+ */
+function computeDefaultSize(divWidth, divHeight) {
+  const numLevels = 6; // 3 rings + 1/2 a tile for the outer water ring
+  // divHeight = numLevels * (3h/4) + (h/4), implies:
+  const maxSizeThatRespectsHeight = (4 * divHeight) / (3 * numLevels + 1) / 2;
+  const correspondingWidth = SQRT3 * maxSizeThatRespectsHeight;
+  let size;
+  if (numLevels * correspondingWidth < divWidth) {
+    // thus complete board would fit if we pick size based on height (height is limiting factor)
+    size = maxSizeThatRespectsHeight;
+  } else {
+    // we'll have to decide size based on width.
+    const maxSizeThatRespectsWidth = divWidth / numLevels / SQRT3;
+    size = maxSizeThatRespectsWidth;
+  }
+  return size;
+}
+
+export default function Board({
+  width,
+  height,
+  buildOnNodeClick,
+  buildOnEdgeClick,
+  nodeActions,
+  edgeActions,
+  replayMode,
+  gameState,
+  isMobile,
+  show,
+}) {
+  // TODO: Keep in sync with CSS
+  const containerHeight = height - 144 - 38 - 40;
+  const containerWidth = isMobile ? width - 280 : width;
+  const center = [containerWidth / 2, containerHeight / 2];
+  const size = computeDefaultSize(containerWidth, containerHeight);
+  if (!size) {
+    return null;
+  }
+
+  const tiles = gameState.tiles.map(({ coordinate, tile }) => (
+    <Tile
+      key={coordinate}
+      center={center}
+      coordinate={coordinate}
+      tile={tile}
+      size={size}
+    />
+  ));
+  const nodes = Object.values(gameState.nodes).map(
+    ({ color, building, direction, tile_coordinate, id }) => (
+      <Node
+        key={id}
+        id={id}
+        center={center}
+        size={size}
+        coordinate={tile_coordinate}
+        direction={direction}
+        building={building}
+        color={color}
+        flashing={!replayMode && id in nodeActions}
+        onClick={buildOnNodeClick(id, nodeActions[id])}
+      />
+    )
+  );
+  const edges = Object.values(gameState.edges).map(
+    ({ color, direction, tile_coordinate, id }) => (
+      <Edge
+        id={id}
+        key={id}
+        center={center}
+        size={size}
+        coordinate={tile_coordinate}
+        direction={direction}
+        color={color}
+        flashing={id in edgeActions}
+        onClick={buildOnEdgeClick(id, edgeActions[id])}
+      />
+    )
+  );
+  return (
+    <div className={classnames("board", { show })}>
+      {tiles}
+      {edges}
+      {nodes}
+      <Robber
+        center={center}
+        size={size}
+        coordinate={gameState.robber_coordinate}
+      />
+    </div>
+  );
+}
+---------- C:\Users\mason\programming\catanatron\ui\src\pages\Edge.js ---------- 
+import React from "react";
+import cn from "classnames";
+
+import { tilePixelVector, getEdgeTransform } from "../utils/coordinates";
+import useWindowSize from "../utils/useWindowSize";
+
+function Road({ color }) {
+  return <div className={cn("road", color)}></div>;
+}
+
+export default function Edge({
+  id,
+  center,
+  size,
+  coordinate,
+  direction,
+  color,
+  flashing,
+  onClick,
+}) {
+  const { width } = useWindowSize();
+  const [centerX, centerY] = center;
+  const [tileX, tileY] = tilePixelVector(coordinate, size, centerX, centerY);
+  const transform = getEdgeTransform(direction, size, width);
+
+  return (
+    <div
+      id={id}
+      className={"edge " + direction}
+      style={{
+        left: tileX,
+        top: tileY,
+        width: size * 0.9,
+        transform: transform,
+      }}
+      onClick={onClick}
+    >
+      {color && <Road color={color} />}
+      {flashing && <div className="pulse"></div>}
+    </div>
+  );
+}
+---------- C:\Users\mason\programming\catanatron\ui\src\pages\GameScreen.js ---------- 
+import React, { useEffect, useState, useContext } from "react";
+import { useParams } from "react-router-dom";
+import PropTypes from "prop-types";
+import Loader from "react-loader-spinner";
+import { useSnackbar } from "notistack";
+
+import ZoomableBoard from "./ZoomableBoard";
+import ActionsToolbar from "./ActionsToolbar";
+
+import "react-loader-spinner/dist/loader/css/react-spinner-loader.css";
+import "./GameScreen.scss";
+import LeftDrawer from "../components/LeftDrawer";
+import { store } from "../store";
+import ACTIONS from "../actions";
+import { getState, postAction } from "../utils/apiClient";
+import { dispatchSnackbar } from "../components/Snackbar";
+import { getHumanColor } from "../utils/stateUtils";
+
+const ROBOT_THINKING_TIME = 300;
+
+function GameScreen({ replayMode }) {
+  const { gameId, stateIndex } = useParams();
+  const { state, dispatch } = useContext(store);
+  const { enqueueSnackbar, closeSnackbar } = useSnackbar();
+  const [isBotThinking, setIsBotThinking] = useState(false);
+
+  // Load game state
+  useEffect(() => {
+    if (!gameId) {
+      return;
+    }
+
+    (async () => {
+      const gameState = await getState(gameId, stateIndex);
+      dispatch({ type: ACTIONS.SET_GAME_STATE, data: gameState });
+    })();
+  }, [gameId, stateIndex, dispatch]);
+
+  // Maybe kick off next query?
+  useEffect(() => {
+    if (!state.gameState || replayMode) {
+      return;
+    }
+    if (
+      state.gameState.bot_colors.includes(state.gameState.current_color) &&
+      !state.gameState.winning_color
+    ) {
+      // Make bot click next action.
+      (async () => {
+        setIsBotThinking(true);
+        const start = new Date();
+        const gameState = await postAction(gameId);
+        const requestTime = new Date() - start;
+        setTimeout(() => {
+          // simulate thinking
+          setIsBotThinking(false);
+          dispatch({ type: ACTIONS.SET_GAME_STATE, data: gameState });
+          if (getHumanColor(gameState)) {
+            dispatchSnackbar(enqueueSnackbar, closeSnackbar, gameState);
+          }
+        }, ROBOT_THINKING_TIME - requestTime);
+      })();
+    }
+  }, [
+    gameId,
+    replayMode,
+    state.gameState,
+    dispatch,
+    enqueueSnackbar,
+    closeSnackbar,
+  ]);
+
+  if (!state.gameState) {
+    return (
+      <main>
+        <Loader
+          className="loader"
+          type="Grid"
+          color="#000000"
+          height={100}
+          width={100}
+        />
+      </main>
+    );
+  }
+
+  return (
+    <main>
+      <h1 className="logo">Catanatron</h1>
+      <ZoomableBoard replayMode={replayMode} />
+      <ActionsToolbar isBotThinking={isBotThinking} replayMode={replayMode} />
+      <LeftDrawer />
+    </main>
+  );
+}
+
+GameScreen.propTypes = {
+  /**
+   * Injected by the documentation to work in an iframe.
+   * You won't need it on your project.
+   */
+  window: PropTypes.func,
+};
+
+export default GameScreen;
+---------- C:\Users\mason\programming\catanatron\ui\src\pages\HomePage.js ---------- 
+import React, { useState } from "react";
+import { useHistory } from "react-router-dom";
+
+import "./HomePage.scss";
+import { Button } from "@material-ui/core";
+import Loader from "react-loader-spinner";
+import { createGame } from "../utils/apiClient";
+
+export default function HomePage() {
+  const [loading, setLoading] = useState(false);
+  const history = useHistory();
+
+  const handleCreateGame = async (players) => {
+    setLoading(true);
+    const gameId = await createGame(players);
+    setLoading(false);
+    history.push("/games/" + gameId);
+  };
+
+  return (
+    <div className="home-page">
+      <h1 className="logo">Catanatron</h1>
+      <div className="switchable">
+        {!loading && (
+          <>
+            <ul>
+              <li>1V1</li>
+              <li>OPEN HAND</li>
+              <li>NO CHOICE DURING DISCARD</li>
+            </ul>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={() => handleCreateGame(["HUMAN", "CATANATRON"])}
+            >
+              Play against Catanatron
+            </Button>
+            <Button
+              variant="contained"
+              color="secondary"
+              onClick={() => handleCreateGame(["RANDOM", "RANDOM"])}
+            >
+              Watch Random Bots
+            </Button>
+            <Button
+              variant="contained"
+              color="secondary"
+              onClick={() => handleCreateGame(["CATANATRON", "CATANATRON"])}
+            >
+              Watch Catanatron
+            </Button>
+          </>
+        )}
+        {loading && (
+          <Loader
+            className="loader"
+            type="Grid"
+            color="#ffffff"
+            height={60}
+            width={60}
+          />
+        )}
+      </div>
+    </div>
+  );
+}
+---------- C:\Users\mason\programming\catanatron\ui\src\pages\Node.js ---------- 
+import React from "react";
+import cn from "classnames";
+
+import { tilePixelVector, getNodeDelta, SQRT3 } from "../utils/coordinates";
+
+function Building({ building, color }) {
+  const type = building === "CITY" ? "city" : "settlement";
+  return <div className={cn(color, type)}></div>;
+}
+
+export default function Node({
+  id,
+  center,
+  size,
+  coordinate,
+  direction,
+  building,
+  color,
+  flashing,
+  onClick,
+}) {
+  const [centerX, centerY] = center;
+  const w = SQRT3 * size;
+  const h = 2 * size;
+  const [tileX, tileY] = tilePixelVector(coordinate, size, centerX, centerY);
+  const [deltaX, deltaY] = getNodeDelta(direction, w, h);
+  const x = tileX + deltaX;
+  const y = tileY + deltaY;
+
+  return (
+    <div
+      className="node"
+      style={{
+        width: size * 0.5,
+        height: size * 0.5,
+        left: x,
+        top: y,
+        transform: `translateY(-50%) translateX(-50%)`,
+      }}
+      onClick={onClick}
+    >
+      {color && <Building building={building} color={color} />}
+      {flashing && <div className="pulse"></div>}
+      {/* {id} */}
+    </div>
+  );
+}
+---------- C:\Users\mason\programming\catanatron\ui\src\pages\Robber.js ---------- 
+import React from "react";
+
+import { NumberToken } from "./Tile";
+import { SQRT3, tilePixelVector } from "../utils/coordinates";
+
+export default function Robber({ center, size, coordinate }) {
+  const [centerX, centerY] = center;
+  const w = SQRT3 * size;
+  const [tileX, tileY] = tilePixelVector(coordinate, size, centerX, centerY);
+  const [deltaX, deltaY] = [-w / 2 + w / 8, 0];
+  const x = tileX + deltaX;
+  const y = tileY + deltaY;
+
+  return (
+    <NumberToken
+      className="robber"
+      size={size}
+      style={{
+        left: x,
+        top: y,
+      }}
+    >
+      R
+    </NumberToken>
+  );
+}
+---------- C:\Users\mason\programming\catanatron\ui\src\pages\Tile.js ---------- 
+import React from "react";
+import cn from "classnames";
+import Paper from "@material-ui/core/Paper";
+
+import "./Tile.scss";
+import brickTile from "../assets/tile_brick.svg";
+import desertTile from "../assets/tile_desert.svg";
+import grainTile from "../assets/tile_wheat.svg";
+import lumberTile from "../assets/tile_wood.svg";
+import oreTile from "../assets/tile_ore.svg";
+import woolTile from "../assets/tile_sheep.svg";
+import { SQRT3, tilePixelVector } from "../utils/coordinates";
+
+export function NumberToken({ className, children, style, size }) {
+  return (
+    <Paper
+      elevation={3}
+      className={cn("number-token", className)}
+      style={{
+        "--base-size": `${size}px`, // this var can be overrided via `style` prop
+        ...style,
+      }}
+    >
+      {children}
+    </Paper>
+  );
+}
+
+const numberToPips = (number) => {
+  switch (number) {
+    case 2:
+    case 12:
+      return "•";
+    case 3:
+    case 11:
+      return "••";
+    case 4:
+    case 10:
+      return "•••";
+    case 5:
+    case 9:
+      return "••••";
+    case 6:
+    case 8:
+      return "•••••";
+    default:
+      return "";
+  }
+};
+
+export default function Tile({ center, coordinate, tile, size }) {
+  const w = SQRT3 * size;
+  const h = 2 * size;
+  const [centerX, centerY] = center;
+  const [x, y] = tilePixelVector(coordinate, size, centerX, centerY);
+
+  let contents;
+  let resourceTile;
+  if (tile.type === "RESOURCE_TILE") {
+    contents = (
+      <NumberToken size={size}>
+        <div>{tile.number}</div>
+        <div class="pips">{numberToPips(tile.number)}</div>
+      </NumberToken>
+    );
+    resourceTile = {
+      BRICK: brickTile,
+      SHEEP: woolTile,
+      ORE: oreTile,
+      WOOD: lumberTile,
+      WHEAT: grainTile,
+    }[tile.resource];
+  } else if (tile.type === "DESERT") {
+    resourceTile = desertTile;
+  } else if (tile.type === "PORT") {
+    let x = 0;
+    let y = 0;
+    if (tile.direction.includes("SOUTH")) {
+      y += size / 3;
+    }
+    if (tile.direction.includes("NORTH")) {
+      y -= size / 3;
+    }
+    if (tile.direction.includes("WEST")) {
+      x -= size / 4;
+      if (tile.direction === "WEST") {
+        x = -size / 3;
+      }
+    }
+    if (tile.direction.includes("EAST")) {
+      x += size / 4;
+      if (tile.direction === "EAST") {
+        x = size / 3;
+      }
+    }
+    if (tile.resource === null) {
+      contents = (
+        <div
+          className="port"
+          style={{
+            left: x,
+            top: y,
+          }}
+        >
+          3:1
+        </div>
+      );
+    } else {
+      const portBackground = {
+        BRICK: brickTile,
+        SHEEP: woolTile,
+        ORE: oreTile,
+        WOOD: lumberTile,
+        WHEAT: grainTile,
+      }[tile.resource];
+      contents = (
+        <div
+          className="port"
+          style={{
+            left: x,
+            top: y,
+            backgroundImage: `url('${portBackground}')`,
+            height: 60,
+            backgroundSize: "contain",
+            width: 52,
+            backgroundRepeat: "no-repeat",
+          }}
+        >
+          2:1
+        </div>
+      );
+    }
+  }
+
+  return (
+    <div
+      key={coordinate}
+      className="tile"
+      style={{
+        left: x - w / 2,
+        top: y - h / 2,
+        width: w,
+        height: h,
+        backgroundImage: `url('${resourceTile}')`,
+        backgroundSize: "contain",
+      }}
+    >
+      {contents}
+    </div>
+  );
+}
+---------- C:\Users\mason\programming\catanatron\ui\src\pages\ZoomableBoard.js ---------- 
+import React, { useCallback, useContext, useEffect, useState } from "react";
+import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
+import memoize from "fast-memoize";
+import { useMediaQuery, useTheme } from "@material-ui/core";
+
+import useWindowSize from "../utils/useWindowSize";
+
+import "./Board.scss";
+import { store } from "../store";
+import { isPlayersTurn } from "../utils/stateUtils";
+import { postAction } from "../utils/apiClient";
+import { useParams } from "react-router";
+import ACTIONS from "../actions";
+import Board from "./Board";
+
+/**
+ * Returns object representing actions to be taken if click on node.
+ * @returns {3 => ["BLUE", "BUILD_CITY", 3], ...}
+ */
+function buildNodeActions(state) {
+  if (!isPlayersTurn(state.gameState)) {
+    return {};
+  }
+
+  const nodeActions = {};
+  const buildInitialSettlementActions = state.gameState.is_initial_build_phase
+    ? state.gameState.current_playable_actions.filter(
+        (action) => action[1] === "BUILD_SETTLEMENT"
+      )
+    : [];
+  const inInitialBuildPhase = state.gameState.is_initial_build_phase;
+  if (inInitialBuildPhase) {
+    buildInitialSettlementActions.forEach((action) => {
+      nodeActions[action[2]] = action;
+    });
+  } else if (state.isBuildingSettlement) {
+    state.gameState.current_playable_actions
+      .filter((action) => action[1] === "BUILD_SETTLEMENT")
+      .forEach((action) => {
+        nodeActions[action[2]] = action;
+      });
+  } else if (state.isBuildingCity) {
+    state.gameState.current_playable_actions
+      .filter((action) => action[1] === "BUILD_CITY")
+      .forEach((action) => {
+        nodeActions[action[2]] = action;
+      });
+  }
+  return nodeActions;
+}
+
+function buildEdgeActions(state) {
+  if (!isPlayersTurn(state.gameState)) {
+    return {};
+  }
+
+  const edgeActions = {};
+  const buildInitialRoadActions = state.gameState.is_initial_build_phase
+    ? state.gameState.current_playable_actions.filter(
+        (action) => action[1] === "BUILD_ROAD"
+      )
+    : [];
+  const inInitialBuildPhase = state.gameState.is_initial_build_phase;
+  if (inInitialBuildPhase) {
+    buildInitialRoadActions.forEach((action) => {
+      edgeActions[action[2]] = action;
+    });
+  } else if (state.isBuildingRoad) {
+    state.gameState.current_playable_actions
+      .filter((action) => action[1] === "BUILD_ROAD")
+      .forEach((action) => {
+        edgeActions[action[2]] = action;
+      });
+  }
+  return edgeActions;
+}
+
+export default function ZoomableBoard({ replayMode }) {
+  const { gameId } = useParams();
+  const { state, dispatch } = useContext(store);
+  const { width, height } = useWindowSize();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.up("md"));
+  const [show, setShow] = useState(false);
+
+  // TODO: Move these up to GameScreen and let Zoomable be presentational component
+  // https://stackoverflow.com/questions/61255053/react-usecallback-with-parameter
+  const buildOnNodeClick = useCallback(
+    memoize((id, action) => async () => {
+      console.log("Clicked Node ", id, action);
+      if (action) {
+        const gameState = await postAction(gameId, action);
+        dispatch({ type: ACTIONS.SET_GAME_STATE, data: gameState });
+      }
+    }),
+    []
+  );
+  const buildOnEdgeClick = useCallback(
+    memoize((id, action) => async () => {
+      console.log("Clicked Edge ", id, action);
+      if (action) {
+        const gameState = await postAction(gameId, action);
+        dispatch({ type: ACTIONS.SET_GAME_STATE, data: gameState });
+      }
+    }),
+    []
+  );
+
+  const nodeActions = replayMode ? {} : buildNodeActions(state);
+  const edgeActions = replayMode ? {} : buildEdgeActions(state);
+
+  useEffect(() => {
+    setTimeout(() => {
+      setShow(true);
+    }, 300);
+  }, []);
+
+  return (
+    <TransformWrapper
+      options={{
+        limitToBounds: true,
+      }}
+    >
+      {({
+        zoomIn,
+        zoomOut,
+        resetTransform,
+        positionX,
+        positionY,
+        scale,
+        previousScale,
+      }) => (
+        <React.Fragment>
+          <div className="board-container">
+            <TransformComponent>
+              <Board
+                width={width}
+                height={height}
+                buildOnNodeClick={buildOnNodeClick}
+                buildOnEdgeClick={buildOnEdgeClick}
+                nodeActions={nodeActions}
+                edgeActions={edgeActions}
+                replayMode={replayMode}
+                show={show}
+                gameState={state.gameState}
+                isMobile={isMobile}
+              ></Board>
+            </TransformComponent>
+          </div>
+        </React.Fragment>
+      )}
+    </TransformWrapper>
+  );
+}
+---------- C:\Users\mason\programming\catanatron\ui\src\pages\ActionsToolbar.scss ---------- 
+@import "../variables.scss";
+
+.state-summary {
+  height: 60px;
+  width: 100%;
+  max-width: $sm-breakpoint;
+  margin: 0 auto;
+  display: flex;
+  padding: $sm-gutter;
+  .open-drawer-btn {
+    color: white;
+    margin-right: $sm-gutter;
+  }
+}
+
+$btn-height: 60px;
+.actions-toolbar {
+  height: $btn-height + 2 * $sm-gutter;
+  width: 100%;
+  max-width: $sm-breakpoint;
+  margin-left: auto;
+  margin-right: auto;
+  padding: $sm-gutter;
+  display: flex;
+  justify-content: space-between;
+  gap: $sm-gutter;
+
+  button {
+    min-width: 60px;
+    width: 100px;
+    height: $btn-height;
+  }
+
+  .confirm-btn {
+    width: 100%;
+  }
+
+  .action-popover {
+    z-index: 1;
+
+    overflow: auto;
+    max-height: calc(100% - #{$btn-height});
+    margin-bottom: 10px;
+  }
+
+  .MuiButton-label {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
+    .MuiButton-startIcon {
+      margin: 0;
+    }
+  }
+}
+---------- C:\Users\mason\programming\catanatron\ui\src\pages\Board.scss ---------- 
+@import "../variables.scss";
+
+.RED {
+  background: $red;
+}
+.BLUE {
+  background: $blue;
+}
+.ORANGE {
+  background: $orange;
+}
+.WHITE {
+  background: $white;
+}
+.RED.foreground {
+  color: $red;
+  background: #00000000;
+}
+.BLUE.foreground {
+  color: $blue;
+  background: #00000000;
+}
+.ORANGE.foreground {
+  color: $orange;
+  background: #00000000;
+}
+.WHITE.foreground {
+  color: white;
+  background: #00000000;
+}
+
+// ===== Number Tokens
+.number-token,
+.port {
+  width: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: bold;
+
+  position: relative;
+}
+
+@media screen and (min-width: $sm-breakpoint) {
+  .number-token,
+  .port {
+    font-size: 1.3rem;
+  }
+}
+
+.MuiPaper-elevation3.number-token {
+  background: $dark-gray;
+  color: white;
+}
+
+.MuiPaper-elevation3.robber {
+  background: #6b6b6b;
+  position: absolute;
+  font-size: 100%;
+}
+
+// ===== Tiles
+.tile {
+  position: absolute;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+// ===== Edges
+.edge {
+  position: absolute;
+  display: flex;
+  justify-content: center;
+
+  height: 5px; // stroke
+}
+.road {
+  position: absolute;
+  border: 1px solid $dark-gray;
+  width: 100%;
+  height: 100%;
+  border-radius: 2px;
+}
+@media screen and (min-width: $sm-breakpoint) {
+  .edge {
+    height: 12px; // stroke
+  }
+}
+
+// ===== Nodes
+.node {
+  position: absolute;
+  height: 10px;
+  width: 10px;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.settlement {
+  width: 80%;
+  height: 80%;
+}
+.city {
+  width: 100%;
+  height: 100%;
+}
+.settlement,
+.city {
+  border-radius: 4px; // mimic Paper
+  border: 2px solid $dark-gray;
+}
+
+.BLUE.city {
+  border: 4px solid $blue;
+  background: $dark-gray;
+}
+.RED.city {
+  border: 4px solid $red;
+  background: $dark-gray;
+}
+.ORANGE.city {
+  border: 4px solid $orange;
+  background: $dark-gray;
+}
+.WHITE.city {
+  border: 4px solid $white;
+  background: $dark-gray;
+}
+
+// Taken from https://codepen.io/peeke/pen/BjxXZa.
+.pulse {
+  cursor: pointer;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translateX(-50%) translateY(-50%);
+
+  &:after {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    background-color: white;
+    border-radius: 4px;
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.3);
+    animation: pulse-dot 1.25s cubic-bezier(0.455, 0.03, 0.515, 0.955) -0.4s infinite;
+  }
+}
+
+@keyframes pulse-dot {
+  0% {
+    transform: scale(0.8);
+  }
+  50% {
+    transform: scale(1);
+  }
+  100% {
+    transform: scale(0.8);
+  }
+}
+
+.edge .pulse {
+  width: 90%;
+  height: 90%;
+}
+
+.node .pulse {
+  width: 75%;
+  height: 75%;
+}
+---------- C:\Users\mason\programming\catanatron\ui\src\pages\GameScreen.scss ---------- 
+@import "../variables.scss";
+
+.MuiToolbar-root {
+  background: $black;
+}
+
+h6.MuiTypography-h6 {
+  font-family: "Bungee Inline", sans-serif;
+}
+
+@media (min-width: 600px) {
+  #root .snackbar-container {
+    display: none;
+  }
+}
+
+// For Snackbar
+#root .snackbar-container {
+  z-index: 1200;
+  left: 50% !important;
+  bottom: 0px;
+  transform: translateX(-50%);
+  max-width: $sm-breakpoint;
+  width: 100%;
+  .MuiCollapse-container {
+    padding: 0 10px;
+    width: 100%;
+    .MuiCollapse-wrapper {
+      margin-top: 10px;
+      margin-bottom: 10px;
+      height: 60px;
+      padding: 0;
+
+      > div > div {
+        height: 100%;
+
+        > div {
+          height: 100%;
+        }
+      }
+    }
+  }
+}
+
+main {
+  .logo {
+    margin: 20px 20px 0 20px;
+    text-align: center;
+  }
+
+  background: $black;
+  color: white;
+
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+
+  .loader {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .board-container,
+  .loader {
+    height: 100%;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+}
+
+.board-container {
+  .react-transform-component {
+    height: 100%;
+    width: 100%;
+
+    .react-transform-element {
+      height: 100%;
+      width: 100%;
+    }
+  }
+
+  .board {
+    position: relative;
+    opacity: 0;
+
+    height: 100%;
+    width: 100%;
+  }
+  .board.show {
+    opacity: 1;
+  }
+}
+
+@media (min-width: $md-breakpoint) {
+  main {
+    padding-left: 280px;
+  }
+}
+---------- C:\Users\mason\programming\catanatron\ui\src\pages\HomePage.scss ---------- 
+@import "../variables.scss";
+
+.home-page {
+  height: 100%;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  h1 {
+    color: white;
+    font-size: 2.5rem;
+    margin-bottom: 0px;
+  }
+  ul {
+    color: white;
+  }
+
+  .switchable {
+    height: 224px; // NOTE: Fixed to avoid loading jump
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+
+    button {
+      margin-bottom: $sm-gutter;
+    }
+  }
+}
+---------- C:\Users\mason\programming\catanatron\ui\src\pages\Tile.scss ---------- 
+@import "../variables.scss";
+
+.number-token {
+    --scale-factor: 0.65;
+    --base-font-size: 100%;
+    height: 4ch;
+    width: 4ch;
+    text-align: center;
+    padding: 5px;
+    line-height: .8rem;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    .pips {
+        font-size: calc(var(--base-font-size) * 60%);
+    }
+}
+
+@media(max-width: $sm-breakpoint) {
+    .number-token {
+        --base-font-size: 75%;
+    }
+}
+

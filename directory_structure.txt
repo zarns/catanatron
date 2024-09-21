@@ -1,0 +1,178 @@
+./
+    |-- .dockerignore
+    |-- .github/
+    |   .github/
+    |       `-- workflows/
+    |           workflows/
+    |-- .gitignore
+    |-- catanatron_core/
+    |   catanatron_core/
+    |       |-- catanatron/
+    |       |   catanatron/
+    |       |       |-- __init__.py
+    |       |       |-- game.py
+    |       |       |-- json.py
+    |       |       |-- models/
+    |       |       |   models/
+    |       |       |       |-- __init__.py
+    |       |       |       |-- actions.py
+    |       |       |       |-- board.py
+    |       |       |       |-- coordinate_system.py
+    |       |       |       |-- decks.py
+    |       |       |       |-- enums.py
+    |       |       |       |-- map.py
+    |       |       |       `-- player.py
+    |       |       |-- players/
+    |       |       |   players/
+    |       |       |       |-- __init__.py
+    |       |       |       |-- search.py
+    |       |       |       `-- weighted_random.py
+    |       |       |-- state.py
+    |       |       `-- state_functions.py
+    |       `-- setup.py
+    |-- catanatron_experimental/
+    |   catanatron_experimental/
+    |       |-- catanatron_experimental/
+    |       |   catanatron_experimental/
+    |       |       |-- Overview.ipynb
+    |       |       |-- __init__.py
+    |       |       |-- benchmarks/
+    |       |       |   benchmarks/
+    |       |       |       |-- benchmark.py
+    |       |       |       |-- benchmark_bot_strength.py
+    |       |       |       |-- benchmark_create_sample_vector.py
+    |       |       |       |-- benchmark_deck.py
+    |       |       |       |-- benchmark_edge_id.py
+    |       |       |       |-- benchmark_game_copy.py
+    |       |       |       `-- benchmark_game_ops.py
+    |       |       |-- cli/
+    |       |       |   cli/
+    |       |       |       |-- accumulators.py
+    |       |       |       |-- cli_players.py
+    |       |       |       `-- simulation_accumulator.py
+    |       |       |-- data_logger.py
+    |       |       |-- machine_learning/
+    |       |       |   machine_learning/
+    |       |       |       |-- __init__.py
+    |       |       |       |-- players/
+    |       |       |       |   players/
+    |       |       |       |       |-- mcts.py
+    |       |       |       |       |-- minimax.py
+    |       |       |       |       |-- online_mcts_dqn.py
+    |       |       |       |       |-- playouts.py
+    |       |       |       |       |-- reinforcement.py
+    |       |       |       |       |-- tree_search_utils.py
+    |       |       |       |       `-- value.py
+    |       |       |       |-- plot.py
+    |       |       |       `-- utils.py
+    |       |       |-- mcts_score_collector.py
+    |       |       |-- my_player.py
+    |       |       |-- optunation.py
+    |       |       |-- play.py
+    |       |       |-- rayopt.py
+    |       |       |-- rllibtest.py
+    |       |       |-- spsa.py
+    |       |       |-- train_model.py
+    |       |       `-- utils.py
+    |       `-- setup.py
+    |-- catanatron_gym/
+    |   catanatron_gym/
+    |       |-- catanatron_gym/
+    |       |   catanatron_gym/
+    |       |       |-- __init__.py
+    |       |       |-- board_tensor_features.py
+    |       |       |-- envs/
+    |       |       |   envs/
+    |       |       |       |-- __init__.py
+    |       |       |       `-- catanatron_env.py
+    |       |       `-- features.py
+    |       |-- sample.py
+    |       `-- setup.py
+    |-- catanatron_server/
+    |   catanatron_server/
+    |       |-- catanatron_server/
+    |       |   catanatron_server/
+    |       |       |-- __init__.py
+    |       |       |-- api.py
+    |       |       |-- models.py
+    |       |       |-- utils.py
+    |       |       `-- wsgi.py
+    |       `-- setup.py
+    |-- docs/
+    |   docs/
+    |       |-- make.bat
+    |       `-- source/
+    |           source/
+    |               |-- _static/
+    |               |   _static/
+    |               |-- conf.py
+    |-- print_directory_tree.py
+    `-- ui/
+        ui/
+            |-- .dockerignore
+            |-- .gitignore
+            |-- .npmrc
+            |-- .nvmrc
+            |-- netlify.toml
+            |-- package.json
+            |-- public/
+            |   public/
+            |       |-- favicon.ico
+            |       |-- index.html
+            |       |-- manifest.json
+            |-- src/
+            |   src/
+            |       |-- App.js
+            |       |-- App.scss
+            |       |-- App.test.js
+            |       |-- actions.js
+            |       |-- assets/
+            |       |   assets/
+            |       |       |-- tile_brick.svg
+            |       |       |-- tile_desert.svg
+            |       |       |-- tile_ore.svg
+            |       |       |-- tile_sheep.svg
+            |       |       |-- tile_wheat.svg
+            |       |       `-- tile_wood.svg
+            |       |-- components/
+            |       |   components/
+            |       |       |-- LeftDrawer.js
+            |       |       |-- LeftDrawer.scss
+            |       |       |-- PlayerStateBox.js
+            |       |       |-- PlayerStateBox.scss
+            |       |       |-- Prompt.js
+            |       |       |-- Prompt.scss
+            |       |       |-- ResourceSelector.js
+            |       |       |-- ResourceSelector.scss
+            |       |       `-- Snackbar.js
+            |       |-- configuration.js
+            |       |-- constants.js
+            |       |-- index.css
+            |       |-- index.js
+            |       |-- logo.svg
+            |       |-- pages/
+            |       |   pages/
+            |       |       |-- ActionsToolbar.js
+            |       |       |-- ActionsToolbar.scss
+            |       |       |-- Board.js
+            |       |       |-- Board.scss
+            |       |       |-- Edge.js
+            |       |       |-- GameScreen.js
+            |       |       |-- GameScreen.scss
+            |       |       |-- HomePage.js
+            |       |       |-- HomePage.scss
+            |       |       |-- Node.js
+            |       |       |-- Robber.js
+            |       |       |-- Tile.js
+            |       |       |-- Tile.scss
+            |       |       `-- ZoomableBoard.js
+            |       |-- serviceWorker.js
+            |       |-- setupTests.js
+            |       |-- store.js
+            |       |-- utils/
+            |       |   utils/
+            |       |       |-- apiClient.js
+            |       |       |-- coordinates.js
+            |       |       |-- stateUtils.js
+            |       |       `-- useWindowSize.js
+            |       `-- variables.scss

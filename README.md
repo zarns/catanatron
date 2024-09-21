@@ -379,3 +379,5 @@ conda activate catan
 catanatron-play --players=R,MP --num=100 --code=catanatron_experimental/catanatron_experimental/my_player.py
 
 python catanatron_experimental/catanatron_experimental/train_model.py --episodes 10 --model my_model
+
+- pip install wandb

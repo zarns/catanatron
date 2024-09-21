@@ -93,7 +93,7 @@ def to_action_space(action):
 def from_action_space(action_int, playable_actions):
     try:
         (action_type, value) = ACTIONS_ARRAY[action_int]
-        print(f"Trying to convert action_int {action_int} to {action_type}, {value}")
+        # print(f"Trying to convert action_int {action_int} to {action_type}, {value}")
 
         for action in playable_actions:
             normalized = normalize_action(action)
@@ -108,7 +108,7 @@ def from_action_space(action_int, playable_actions):
                 value_match = (normalized.value == value)
             
             if action_type_match and value_match:
-                print(f"Match found: action_type: {action_type}, value: {value}")
+                # print(f"Match found: action_type: {action_type}, value: {value}")
                 return action
 
         # If no match is found
@@ -215,8 +215,8 @@ class CatanatronEnv(gym.Env):
         return list(map(to_action_space, self.game.state.playable_actions))
 
     def step(self, action):
-        print(f"Step called with action: {action}")
-        print(f"Valid actions: {self.get_valid_actions()}")
+        # print(f"Step called with action: {action}")
+        # print(f"Valid actions: {self.get_valid_actions()}")
         try:
             catan_action = from_action_space(action, self.game.state.playable_actions)
         except Exception as e:

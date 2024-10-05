@@ -118,7 +118,7 @@ def evaluate_model(model, num_games=10):
         step_count = 0
         while not done and step_count < 1000:
             print(f"Step {step_count}")
-            action_mask = env.action_masks()
+            action_mask = env.unwrapped.action_masks()
             print(f"Action mask shape: {action_mask.shape}, sum: {action_mask.sum()}")
             try:
                 action, _ = model.predict(obs, action_masks=action_mask, deterministic=True)

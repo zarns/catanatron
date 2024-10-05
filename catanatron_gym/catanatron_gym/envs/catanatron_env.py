@@ -267,7 +267,7 @@ class CatanatronEnv(gym.Env):
     
     @property
     def action_masks(self):
-        return self.get_action_mask(self.game.state.playable_actions)
+        return self.unwrapped.get_action_mask(self.game.state.playable_actions)
 
     def reset(self, seed=None, options=None):
         super().reset(seed=seed)
@@ -297,10 +297,10 @@ class CatanatronEnv(gym.Env):
             )
             numeric = np.array([float(sample[i]) for i in self.numeric_features])
             return {
-                "board": board_tensor.astype(np.float32),
-                "numeric": numeric.astype(np.float32)
+                "board": board_tensor.astype(np.float64),
+                "numeric": numeric.astype(np.float64)
             }
-        return np.array([float(sample[i]) for i in self.features], dtype=np.float32)
+        return np.array([float(sample[i]) for i in self.features], dtype=np.float64)
 
     def _advance_until_p0_decision(self):
         while (

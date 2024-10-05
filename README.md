@@ -381,3 +381,11 @@ catanatron-play --players=R,MP --num=100 --code=catanatron_experimental/catanatr
 python catanatron_experimental/catanatron_experimental/train_model.py --episodes 10 --model my_model
 
 - pip install wandb
+- conda install pytorch torchvision torchaudio pytorch-cuda=11.7 -c pytorch -c nvidia
+$env:KMP_DUPLICATE_LIB_OK = "TRUE"
+
+conda install pytorch torchvision torchaudio pytorch-cuda=11.8 -c pytorch -c nvidia
+python -c "import torch; print(torch.cuda.is_available())"
+
+python catanatron_experimental/catanatron_experimental/machine_learning/train_ppo_agent.py
+catanatron-play --players=F,MP --num=100 --code=catanatron_experimental/catanatron_experimental/my_player.py

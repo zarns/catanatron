@@ -33,6 +33,7 @@ function getPlayers(gameMode, numPlayers) {
 export default function HomePage() {
   const [loading, setLoading] = useState(false);
   const [numPlayers, setNumPlayers] = useState(2);
+  const [numPlayers, setNumPlayers] = useState(2);
   const history = useHistory();
 
   const handleCreateGame = async (gameMode) => {
@@ -47,13 +48,32 @@ export default function HomePage() {
     <div className="home-page">
       <h1 className="logo">Catanatron</h1>
 
+
       <div className="switchable">
+        {!loading ? (
         {!loading ? (
           <>
             <ul>
               <li>OPEN HAND</li>
               <li>NO CHOICE DURING DISCARD</li>
             </ul>
+            <div className="player-count-selector">
+              <div className="player-count-label">Number of Players</div>
+              <div className="player-count-buttons">
+                {[2, 3, 4].map((value) => (
+                  <Button
+                    key={value}
+                    variant="contained"
+                    onClick={() => setNumPlayers(value)}
+                    className={`player-count-button ${
+                      numPlayers === value ? "selected" : ""
+                    }`}
+                  >
+                    {value} Players
+                  </Button>
+                ))}
+              </div>
+            </div>
             <div className="player-count-selector">
               <div className="player-count-label">Number of Players</div>
               <div className="player-count-buttons">
@@ -93,6 +113,7 @@ export default function HomePage() {
               Watch Catanatron
             </Button>
           </>
+        ) : (
         ) : (
           <Loader
             className="loader"

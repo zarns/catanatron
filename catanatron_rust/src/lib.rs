@@ -18,11 +18,19 @@ pub mod state_vector;
 static PYTHON_LOGGER_INIT: Once = Once::new();
 
 #[pymodule]
-fn catanatron_rust(_py: Python, m: &PyModule) -> PyResult<()> {
+fn catanatron_rust(py: Python, m: &PyModule) -> PyResult<()> {
     PYTHON_LOGGER_INIT.call_once(|| {
         env_logger::init();
         info!("Initialized catanatron_rust logging");
     });
+    
+    // Export the Game class
     m.add_class::<game::Game>()?;
+    
+    // Export enums for use in Python
+    // In a future version, we'll want to export more types to match the Python API
+    
+    // Export utility functions for testing and debugging
+    
     Ok(())
 }

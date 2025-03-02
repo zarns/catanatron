@@ -18,6 +18,13 @@ from catanatron.models.player import Color
 from catanatron.models.map_instance import build_map
 from catanatron.state_functions import get_actual_victory_points
 
+# Import our Rust bridge module
+from catanatron_experimental.rust_bridge import (
+    create_game,
+    adapt_accumulators_for_backend,
+    is_rust_available,
+)
+
 # try to suppress TF output before any potentially tf-importing modules
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 from catanatron_experimental.utils import ensure_dir, formatSecs
@@ -100,6 +107,12 @@ class CustomTimeRemainingColumn(TimeRemainingColumn):
         """,
 )
 @click.option(
+    "--rust",
+    default=False,
+    is_flag=True,
+    help="Use the Rust backend for faster simulation (if available)",
+)
+@click.option(
     "--config-discard-limit",
     default=7,
     help="Sets Discard Limit to use in games.",
@@ -136,6 +149,7 @@ def simulate(
     json,
     csv,
     db,
+    rust,
     config_discard_limit,
     config_vps_to_win,
     config_map,
@@ -151,7 +165,8 @@ def simulate(
         catanatron-play --players=R,R,R,R --num=1000\n
         catanatron-play --players=W,W,R,R --num=50000 --output=data/ --csv\n
         catanatron-play --players=VP,F --num=10 --output=data/ --json\n
-        catanatron-play --players=W,F,AB:3 --num=1 --csv --json --db --quiet
+        catanatron-play --players=W,F,AB:3 --num=1 --csv --json --db --quiet\n
+        catanatron-play --players=R,R,R,R --num=100 --rust
     """
     if code:
         abspath = os.path.abspath(code)
@@ -180,12 +195,22 @@ def simulate(
 
     output_options = OutputOptions(output, csv, json, db)
     game_config = GameConfigOptions(config_discard_limit, config_vps_to_win, config_map)
+    
+    # Check if Rust backend is requested and available
+    use_rust = rust and is_rust_available()
+    if rust:
+        if use_rust:
+            console.print(f"[green]Using Rust backend for simulation[/green]")
+        else:
+            console.print(f"[yellow]Rust backend requested but not available. Using Python backend.[/yellow]")
+    
     play_batch(
         num,
         players,
         output_options,
         game_config,
         quiet,
+        use_rust=use_rust,
     )
 
 
@@ -226,7 +251,7 @@ def rich_color(color):
     return f"[{style}]{color.value}[/{style}]"
 
 
-def play_batch_core(num_games, players, game_config, accumulators=[]):
+def play_batch_core(num_games, players, game_config, accumulators=[], use_rust=False):
     for accumulator in accumulators:
         if isinstance(accumulator, SimulationAccumulator):
             accumulator.before_all()
@@ -235,13 +260,20 @@ def play_batch_core(num_games, players, game_config, accumulators=[]):
         for player in players:
             player.reset_state()
         map_instance = build_map(game_config.map_instance)
-        game = Game(
+        
+        # Use the Rust backend if requested and available
+        game = create_game(
             players,
+            use_rust=use_rust,
             discard_limit=game_config.discard_limit,
             vps_to_win=game_config.vps_to_win,
             map_instance=map_instance,
         )
-        game.play(accumulators)
+        
+        # Adapt accumulators for the backend
+        adapted_accumulators = adapt_accumulators_for_backend(accumulators, use_rust)
+        
+        game.play(adapted_accumulators)
         yield game
 
     for accumulator in accumulators:
@@ -255,6 +287,7 @@ def play_batch(
     output_options=None,
     game_config=None,
     quiet=False,
+    use_rust=False,
 ):
     output_options = output_options or OutputOptions()
     game_config = game_config or GameConfigOptions()
@@ -274,7 +307,7 @@ def play_batch(
         accumulators.append(accumulator_class(players=players, game_config=game_config))
 
     if quiet:
-        for _ in play_batch_core(num_games, players, game_config, accumulators):
+        for _ in play_batch_core(num_games, players, game_config, accumulators, use_rust):
             pass
         return (
             dict(statistics_accumulator.wins),
@@ -311,7 +344,7 @@ def play_batch(
         ]
 
         for i, game in enumerate(
-            play_batch_core(num_games, players, game_config, accumulators)
+            play_batch_core(num_games, players, game_config, accumulators, use_rust)
         ):
             winning_color = game.winning_color()
 

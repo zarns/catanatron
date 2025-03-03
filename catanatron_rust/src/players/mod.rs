@@ -21,7 +21,7 @@ impl PythonPlayerWrapper {
     }
     
     // Create a simplified state representation for Python
-    fn create_state_dict<'py>(&self, py: Python<'py>, state: &State) -> PyObject {
+    fn create_state_dict(&self, py: Python<'_>, state: &State) -> PyObject {
         let dict = PyDict::new(py);
         
         // Add basic game state information
@@ -70,10 +70,18 @@ impl PythonPlayerWrapper {
 impl Player for PythonPlayerWrapper {
     fn decide(&self, state: &State, playable_actions: &[Action]) -> Action {
         Python::with_gil(|py| {
-            // Convert the actions to a Python list of string representations
-            let py_actions = PyList::new(py, playable_actions.iter().map(|a| {
-                format!("{:?}", a).to_object(py)
-            }));
+            // Convert actions to Python list of Action objects
+            let py_actions = PyList::empty(py);
+            for action in playable_actions.iter() {
+                let py_action = Python::with_gil(|py| {
+                    // Convert Rust Action to Python Action using string representation
+                    let action_str = format!("{:?}", action);
+                    let params = PyDict::new(py);
+                    params.set_item("action", action_str).unwrap_or_default();
+                    params.to_object(py)
+                });
+                py_actions.append(py_action).unwrap_or_default();
+            }
             
             // Create a simplified state representation for Python
             let py_state = self.create_state_dict(py, state);
@@ -97,20 +105,20 @@ impl Player for PythonPlayerWrapper {
                         Err(e) => {
                             warn!("Error calling Python player's decide method: {:?}", e);
                             // Default to the first action as a fallback
-                            return playable_actions[0].clone();
+                            return playable_actions[0];
                         }
                     }
                 }
             };
             
             // Convert the Python result back to a Rust Action
-            let action_idx = match result.extract::<usize>(py) {
+            match result.extract::<usize>(py) {
                 Ok(idx) => {
                     if idx < playable_actions.len() {
-                        idx
+                        playable_actions[idx]
                     } else {
                         warn!("Python player returned invalid action index: {}", idx);
-                        0 // Default to first action
+                        playable_actions[0] // Default to first action
                     }
                 },
                 Err(_) => {
@@ -118,24 +126,21 @@ impl Player for PythonPlayerWrapper {
                     match result.extract::<String>(py) {
                         Ok(action_str) => {
                             // Find matching action based on string representation
-                            for (i, action) in playable_actions.iter().enumerate() {
+                            for action in playable_actions.iter() {
                                 if format!("{:?}", action) == action_str {
-                                    return action.clone();
+                                    return *action;
                                 }
                             }
-                            warn!("Could not find matching action for: {}", action_str);
-                            0 // Default to first action
+                            // Default to first action if no match found
+                            playable_actions[0]
                         },
                         Err(_) => {
                             warn!("Could not convert Python result to action");
-                            0 // Default to first action
+                            playable_actions[0]
                         }
                     }
                 }
-            };
-            
-            // Return the selected action
-            playable_actions[action_idx].clone()
+            }
         })
     }
 }

@@ -81,6 +81,84 @@ If you find a bot that consistently beats the best bot right now, please submit 
 
 ## Advanced Usage
 
+### Rust Implementation (High Performance)
+
+Catanatron now offers a high-performance Rust implementation with Python bindings via PyO3. This provides a significant speed boost for simulations while maintaining a Python-friendly interface.
+
+To build and use the Rust implementation:
+
+```bash
+cd catanatron_rust
+maturin develop
+```
+
+Then you can use it in your Python code:
+
+```python
+from catanatron_rust import Game, Player, Action
+
+# Create a custom player by subclassing the Rust Player
+class MyPlayer(Player):
+    def __init__(self, color):
+        super().__init__(color, "MyCustomStrategy")
+    
+    def decide(self, game_state, playable_actions):
+        # Implement your custom logic using the enhanced state representation
+        # For example, choose a random action:
+        import random
+        return random.choice(playable_actions)
+
+# Create and run a game
+players = [MyPlayer(i) for i in range(4)]
+game = Game(players, seed=42)
+winner = game.play([])  # Can pass observers as arguments
+print(f"Winner: Player {winner}")
+```
+
+#### Enhanced State Representation
+
+The Rust implementation provides a comprehensive state representation as a Python dictionary, making it easy to implement sophisticated strategies:
+
+```python
+{
+    # Basic game state
+    'current_player': 0,                # Player index (0-3)
+    'current_player_color': 'RED',      # Player color name
+    'is_initial_build_phase': True,     # Whether in initial build phase
+    'action_prompt': 'BUILD_SETTLEMENT', # Current action being prompted
+    
+    # Bank information
+    'bank': {
+        'wood': 19, 'brick': 19, 'sheep': 19, 'wheat': 19, 'ore': 19
+    },
+    
+    # Player information
+    'players': {
+        'RED': {
+            'resources': {'wood': 0, 'brick': 0, ...},
+            'settlements': [0, 3],      # Node IDs of settlements
+            'cities': [],               # Node IDs of cities
+            'roads': [0, 5]             # Edge IDs of roads
+        },
+        'BLUE': {...}, ...
+    },
+    
+    # Board state
+    'buildable_nodes': [5, 7, 9, ...],  # Node IDs buildable by current player
+    'buildable_edges': [8, 10, 12, ...]  # Edge IDs buildable by current player
+}
+```
+
+#### Example Scripts
+
+Check out the `examples/` directory for scripts demonstrating the Rust implementation:
+
+- `enhanced_pyrust_interface.py`: Full PyO3 bindings capabilities
+- `benchmark_pyrust_vs_python.py`: Performance comparison
+- `state_inspector.py`: Interactive state exploration tool
+
+For more details, see the [PyO3 Bindings README](catanatron_rust/src/python/README.md).
+
 ### Inspecting Games (Browser UI)
 
 We provide a [docker-compose.yml](docker-compose.yml) with everything needed to watch games (useful for debugging). It contains all the web-server infrastructure needed to render a game in a browser.

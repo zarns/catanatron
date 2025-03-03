@@ -284,23 +284,22 @@ pub struct Game {
 #[pymethods]
 impl Game {
     #[new]
-    #[args(
-        players, 
-        "*", 
-        seed = "None", 
-        discard_limit = "7", 
-        vps_to_win = "10", 
-        map_instance = "None", 
-        initialize = "true"
-    )]
+    #[pyo3(signature = (
+        players,
+        _seed = None,
+        discard_limit = 7,
+        vps_to_win = 10,
+        _map_instance = None,
+        _initialize = true
+    ))]
     fn new(
         py: Python,
         players: &PyList,
-        seed: Option<i64>,
+        _seed: Option<i64>,
         discard_limit: u8,
         vps_to_win: u8,
-        map_instance: Option<&PyAny>,
-        initialize: bool,
+        _map_instance: Option<&PyAny>,  // Unused, prefix with underscore
+        _initialize: bool,              // Unused, prefix with underscore
     ) -> PyResult<Self> {
         let num_players = players.len();
         let config = GameConfiguration {
@@ -363,7 +362,7 @@ impl Game {
             0, // No seed for now
         );
         let rc_config = Rc::new(self.config.clone());
-        let mut state = State::new(rc_config.clone(), Rc::new(map_instance));
+        let state = State::new(rc_config.clone(), Rc::new(map_instance));
         self.state = Some(state);
 
         // Play the game until a winner or max ticks
@@ -388,7 +387,7 @@ impl Game {
         Ok(self.winner)
     }
 
-    fn play_tick(&mut self, py: Python, decide_fn: Option<PyObject>) -> PyResult<PyObject> {
+    fn play_tick(&mut self, py: Python, _decide_fn: Option<PyObject>) -> PyResult<PyObject> {
         if self.state.is_none() {
             // Initialize state if not already done
             let global_state = GlobalState::new();
@@ -433,7 +432,7 @@ impl Game {
         }
         
         // Apply the action
-        state.apply_action(action.clone());
+        state.apply_action(action);
         
         // Return the action as a Python object
         Ok(format!("{:?}", action).to_object(py))
